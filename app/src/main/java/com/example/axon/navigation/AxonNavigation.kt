@@ -9,6 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.axon.AxonViewModel
 import com.example.axon.screens.HomeScreen
+import com.example.axon.screens.QuestionandAnswer
 import com.example.axon.screens.Topics
 import com.example.axon.util.Screens
 
@@ -47,6 +48,24 @@ fun AxonNavigation() {
                 },
                 categoryId = navBackStackEntry.arguments?.getString("categoryName") ?: ""
             )
+        }
+
+        composable(
+            route = Screens.QUESTION_AND_ANSWER.name + "/{categoryName}/{topic}",
+            arguments = listOf(
+                navArgument(name = "categoryName"){ type = NavType.StringType},
+                navArgument(name = "topic"){ type = NavType.StringType}
+            )
+        ){navBackStackEntry ->
+
+            QuestionandAnswer(
+                axonViewModel = viewModel,
+                categoryId = navBackStackEntry.arguments?.getString("categoryName") ?: return@composable,
+                topicId = navBackStackEntry.arguments?.getString("topic") ?: return@composable
+            ) {
+                navController.popBackStack()
+
+            }
         }
     }
 }

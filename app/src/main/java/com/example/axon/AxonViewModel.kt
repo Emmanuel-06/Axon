@@ -96,12 +96,16 @@ class AxonViewModel: ViewModel() {
     fun nextQuestion(){
         if(currentIndex < categories.size -1){
             currentIndex++
+        } else {
+            return
         }
     }
 
     fun prevQuestion(){
         if(currentIndex > 0){
             currentIndex--
+        } else {
+
         }
     }
 
