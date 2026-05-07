@@ -58,6 +58,9 @@ dependencies {
     //navigation
     implementation("androidx.navigation:navigation-compose:2.7.0")
 
+        //navigation for bottom sheets
+//            implementation("androidx.compose.material:material-navigation:1.7.0")
+
     //daggerhilt
     implementation("com.google.dagger:hilt-android:$dagger_hilt_version")
     ksp("com.google.dagger:hilt-android-compiler:$dagger_hilt_version")

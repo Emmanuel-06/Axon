@@ -24,7 +24,7 @@ class AxonViewModel: ViewModel() {
                             "A State is any value that can change in response to a users' action"
                         ),
                         QuestionAndAnswer(
-                            "What is a State?",
+                            "When does recomposition occur?",
                             "A State is any value that can change in response to a users' action"
                         ),
                     )

@@ -5,3 +5,8 @@ enum class Screens {
     TOPICS,
     QUESTION_AND_ANSWER
 }
+
+enum class BottomSheetModals {
+    ADD_CATEGORY,
+    CREATE_NEW_CATEGORY
+}
