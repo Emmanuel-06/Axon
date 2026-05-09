@@ -1,14 +1,16 @@
 package com.example.axon.screens
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateValueAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -30,26 +32,27 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFloatingActionButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -62,9 +65,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -74,10 +81,12 @@ import com.example.axon.R
 import com.example.axon.components.ButtonComp
 import com.example.axon.components.CategoryCard
 import com.example.axon.components.CategoryIcon
+import com.example.axon.components.DropDownInputField
 import com.example.axon.components.ExpandedInputField
 import com.example.axon.components.InputField
 import com.example.axon.model.CardInputState
 import com.example.axon.model.Category
+import com.example.axon.model.DropDownMenuItem
 import com.example.axon.model.QuestionAndAnswer
 import com.example.axon.ui.theme.bluePrimary
 import com.example.axon.ui.theme.grey200
@@ -91,7 +100,7 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     onCategoryClick: (String) -> Unit,
     listOfItems: List<Category>,
-    viewModel: AxonViewModel,
+    axonViewModel: AxonViewModel,
 ) {
     var bottomSheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
@@ -160,21 +169,45 @@ fun HomeScreen(
         }
     ) { paddingValues ->
 
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier
-                .padding(paddingValues)
-                .padding(16.dp)
-        ) {
-            items(listOfItems) { category ->
-                CategoryCard(
-                    category,
-                    onClick = {
-                        onCategoryClick(category.categoryName)
-                    }
+        if(listOfItems.isEmpty()){
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.empty_folder),
+                    contentDescription = null,
+                    modifier = Modifier.size(200.dp).alpha(0.4f)
                 )
+                Spacer(modifier = Modifier.height(32.dp))
+
+                Text(
+                    text = " Add a Category to begin",
+                    fontFamily = ttHovesFontFamily,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 20.sp,
+                    textAlign = TextAlign.Center,
+                    color = Color.Black.copy(alpha = 0.3f)
+                )
+            }
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .padding(16.dp)
+            ) {
+                items(listOfItems) { category ->
+                    CategoryCard(
+                        category,
+                        onClick = {
+                            onCategoryClick(category.categoryName)
+                        }
+                    )
+                }
             }
         }
 
@@ -211,8 +244,12 @@ fun HomeScreen(
 
                     }
                 ),
+                viewModel = axonViewModel,
+                onClear = {
+                          categoryToAddState = ""
+                },
                 onAddNewInfo = { categoryName, topicName, questionAndAnswer ->
-                    viewModel.addNewContent(
+                    axonViewModel.addNewContent(
                         categoryName,
                         topicName,
                         QuestionAndAnswer(questionAndAnswer.question, questionAndAnswer.answer)
@@ -239,44 +276,56 @@ private fun BottomSheetModal(
     onBack: () -> Unit,
     scope: CoroutineScope,
     inputState: CardInputState,
+    viewModel: AxonViewModel,
+    onClear: ()-> Unit,
     onAddNewInfo: (String, String, QuestionAndAnswer) -> Unit,
 ) {
     ModalBottomSheet(
         onDismissRequest = onShowBottomSheetChanged,
         dragHandle = null,
-        containerColor = grey200,
+        containerColor = Color.Transparent,
         scrimColor = Color.Black.copy(0.6f),
         sheetState = bottomSheetState,
         modifier = modifier
     ) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .background(grey200, RoundedCornerShape(24.dp)),
+        ) {
 
-        AnimatedContent(
-            targetState = currentSheet,
-            transitionSpec = {
-                fadeIn(animationSpec = tween(300)) + slideInHorizontally { it / 8 } togetherWith
-                        fadeOut(animationSpec = tween(300)) + slideOutHorizontally { -it / 8 }
+            AnimatedContent(
+                targetState = currentSheet,
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(300)) + slideInHorizontally { it / 8 } togetherWith
+                            fadeOut(animationSpec = tween(300)) + slideOutHorizontally { -it / 8 }
 
-            },
-            label = "BottomSheetTransition"
-        ) { sheet ->
-            when (sheet) {
-                BottomSheetModals.ADD_CATEGORY ->
-                    AddCategoryBottomSheetModal(
-                        scope,
-                        bottomSheetState,
-                        onShowBottomSheetChanged,
-                        inputState,
-                        onNavigate = { onCurrentSheetChanged() },
-                        onAddNewInfo
-                    )
+                },
+                label = "BottomSheetTransition"
+            ) { sheet ->
+                when (sheet) {
+                    BottomSheetModals.ADD_CATEGORY ->
+                        AddCategoryBottomSheetModal(
+                            scope,
+                            bottomSheetState,
+                            onShowBottomSheetChanged,
+                            inputState,
+                            onNavigate = { onCurrentSheetChanged() },
+                            onAddNewInfo,
+                            viewModel
+                        )
 
-                BottomSheetModals.CREATE_NEW_CATEGORY ->
-                    CreateCategoryBottomSheetModal(
-                        inputState = inputState,
-                        onSave = { onBack() },
-                        onBack = { onBack() }
-                    )
+                    BottomSheetModals.CREATE_NEW_CATEGORY ->
+                        CreateCategoryBottomSheetModal(
+                            inputState = inputState,
+                            onSave = { icon, name ->
+                                     viewModel.createNewCategory(icon, name)
+                                 },
+                            onBack = { onBack() },
+                            onClear = {onClear()}
+                        )
 
+                }
             }
         }
 
@@ -292,7 +341,20 @@ fun AddCategoryBottomSheetModal(
     inputState: CardInputState,
     onNavigate: () -> Unit,
     onAddNewInfo: (String, String, QuestionAndAnswer) -> Unit,
+    viewModel: AxonViewModel,
 ) {
+
+    var expanded by remember {
+        mutableStateOf(false)
+    }
+    var selectedItem by remember {
+        mutableStateOf(DropDownMenuItem(R.drawable.bus, ""))
+    }
+    val rotation by animateFloatAsState(
+        targetValue = if(expanded) 180f else 0f,
+        label = ""
+    )
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top,
@@ -344,102 +406,177 @@ fun AddCategoryBottomSheetModal(
             verticalArrangement = Arrangement.spacedBy(18.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row(
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
+            // ExposedDropDown Menu Box
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = {
+                    expanded = !expanded
+                }
             ) {
-                InputField(
-                    userInput = inputState.categoryName,
-                    onUserInputChanged = { newValue ->
-                        inputState.onCategoryNameChanged(newValue)
-                    },
-                    label = "Category",
-                    modifier = Modifier.weight(1f)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-
-
-                FilledIconButton(
-                    onClick = { onNavigate() },
-                    shape = RoundedCornerShape(12.dp),
-                    colors = IconButtonColors(
-                        containerColor = Color.White,
-                        contentColor = Color.Black,
-                        disabledContainerColor = Color.Transparent,
-                        disabledContentColor = Color.Transparent
-                    ),
-                    interactionSource = remember { MutableInteractionSource() },
-                    modifier = Modifier.size(56.dp)
+                Row(
+                    verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
                 ) {
-                    Icon(
-                        imageVector = Icons.Rounded.Add,
-                        contentDescription = null,
+                    DropDownInputField(
+                        userInput = selectedItem.title,
+                        onUserInputChanged = {},
+                        label = "Category",
+                        readOnly = true,
                         modifier = Modifier
-                            .size(28.dp)
+                            .weight(1f)
+                            .menuAnchor(),
+                        leadingIcon = {
+                                      CategoryIcon(icon = selectedItem.icon, selected = false, modifier = Modifier
+                                          .size(56.dp)
+                                          .padding(0.dp))
+                        },
+                        trailingIcon = {
+                            IconButton(
+                                onClick = {
+                                    expanded = !expanded
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.KeyboardArrowDown,
+                                    contentDescription = null,
+                                    tint = Color.Black.copy(alpha = 0.6f),
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .rotate(rotation)
+                                )
+
+                            }
+                        }
                     )
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    FilledIconButton(
+                        onClick = { onNavigate() },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = IconButtonColors(
+                            containerColor = Color.White,
+                            contentColor = Color.Black,
+                            disabledContainerColor = Color.Transparent,
+                            disabledContentColor = Color.Transparent
+                        ),
+                        interactionSource = remember { MutableInteractionSource() },
+                        modifier = Modifier.size(56.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Add,
+                            contentDescription = null,
+                            modifier = Modifier
+
+                        )
+                    }
+                }
+
+                // Exposed Dropdown Menu
+                MaterialTheme(
+                    colorScheme = MaterialTheme.colorScheme.copy(surfaceTint = Color.White),
+                    shapes = MaterialTheme.shapes.copy(extraSmall = RoundedCornerShape(16.dp))
+                ){
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(24.dp))
+                            .padding(0.dp)
+                    ) {
+                        viewModel.categoriesCreated.forEachIndexed { index, item ->
+                            DropdownMenuItem(
+                                text = {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        CategoryIcon(
+                                            icon = item.icon,
+                                            selected = false,
+                                            modifier = Modifier.size(56.dp)
+                                        )
+
+                                        Text(
+                                            text = item.title,
+                                            fontFamily = ttHovesFontFamily,
+                                            fontSize = 18.sp
+                                        )
+                                    }
+                                },
+                                onClick = {
+                                    selectedItem = viewModel.categoriesCreated[index]
+                                    expanded = false
+                                }
+                            )
+
+                        }
+
+                    }
+                }
+
+            }
+
+            InputField(
+                userInput = inputState.topic,
+                onUserInputChanged = { newValue ->
+                    inputState.onTopicChanged(newValue)
+                },
+                label = "Topic"
+            )
+
+            InputField(
+                userInput = inputState.question,
+                onUserInputChanged = { newValue ->
+                    inputState.onQuestionChanged(newValue)
+                },
+                label = "Question"
+            )
+
+            ExpandedInputField(
+                userInput = inputState.answer,
+                onUserInputChanged = { newValue ->
+                    inputState.onAnswerChanged(newValue)
+                },
+                label = "Answer to question"
+            )
+            Spacer(modifier = Modifier.height(36.dp))
+
+
+        }
+
+        ButtonComp(
+            color = ButtonDefaults.buttonColors(bluePrimary),
+            buttonText = "Add"
+        ) {
+            onAddNewInfo(
+                inputState.categoryName,
+                inputState.topic,
+                QuestionAndAnswer(inputState.question, inputState.answer)
+            )
+            scope.launch {
+                bottomSheetState.hide()
+            }.invokeOnCompletion {
+                if (!bottomSheetState.isVisible) {
+                    onShowBottomSheetChanged()
                 }
             }
-
-        InputField(
-            userInput = inputState.topic,
-            onUserInputChanged = { newValue ->
-                inputState.onTopicChanged(newValue)
-            },
-            label = "Topic"
-        )
-
-        InputField(
-            userInput = inputState.question,
-            onUserInputChanged = { newValue ->
-                inputState.onQuestionChanged(newValue)
-            },
-            label = "Question"
-        )
-
-        ExpandedInputField(
-            userInput = inputState.answer,
-            onUserInputChanged = { newValue ->
-                inputState.onAnswerChanged(newValue)
-            },
-            label = "Answer to question"
-        )
-        Spacer(modifier = Modifier.height(36.dp))
-
-
-    }
-
-    ButtonComp(
-        color = ButtonDefaults.buttonColors(bluePrimary),
-        buttonText = "Add"
-    ) {
-        onAddNewInfo(
-            inputState.categoryName,
-            inputState.topic,
-            QuestionAndAnswer(inputState.question, inputState.answer)
-        )
-        scope.launch {
-            bottomSheetState.hide()
-        }.invokeOnCompletion {
-            if (!bottomSheetState.isVisible) {
-                onShowBottomSheetChanged()
-            }
         }
+        Spacer(modifier = Modifier.height(16.dp))
     }
-
-    Spacer(modifier = Modifier.height(16.dp))
-}
 }
 
 
+@SuppressLint("UnrememberedMutableInteractionSource")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateCategoryBottomSheetModal(
     inputState: CardInputState,
-    onSave: (String) -> Unit,
+    onSave: (newCategoryIconRes: Int, newCategoryTitle: String ) -> Unit,
     onBack: () -> Unit,
+    onClear: () -> Unit,
     label: String = "create category",
 ) {
 
@@ -455,10 +592,13 @@ fun CreateCategoryBottomSheetModal(
         )
     }
 
-    var selectedItem by remember{
+    var selectedIndex by remember {
         mutableIntStateOf(0)
     }
 
+    val interactionSource = remember{
+        MutableInteractionSource()
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top,
@@ -487,7 +627,7 @@ fun CreateCategoryBottomSheetModal(
             }
 
             Text(
-                text = "New Content",
+                text = "Create a new Category",
                 fontFamily = ttHovesFontFamily,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -503,14 +643,18 @@ fun CreateCategoryBottomSheetModal(
         Spacer(modifier = Modifier.height(24.dp))
 
         LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
             modifier = Modifier.padding(end = 16.dp)
         ) {
-            items(icons) { icon ->
+            items(icons.size) { index ->
                 CategoryIcon(
-                    icon = icon,
-                    selected = selectedItem == icon,
-                    modifier = Modifier.clickable { selectedItem = icon }.clip(CircleShape)
+                    icon = icons[index],
+                    selected = selectedIndex == index,
+                    modifier = Modifier
+                        .clickable(
+                            interactionSource = interactionSource, indication = null,
+                            onClick = { selectedIndex = index }
+                        )
                 )
             }
         }
@@ -525,12 +669,16 @@ fun CreateCategoryBottomSheetModal(
             label = label
         )
 
-        Spacer(modifier = Modifier.height(64.dp))
+        Spacer(modifier = Modifier.weight(1f))
 
         ButtonComp(
             color = ButtonDefaults.buttonColors(bluePrimary),
             buttonText = "Save",
-            onClick = {}
+            onClick = {
+                onBack()
+                onSave(icons[selectedIndex], inputState.categoryToAdd)
+                onClear()
+            },
         )
 
         Spacer(modifier = Modifier.height(16.dp))

@@ -25,7 +25,6 @@ fun CategoryIcon(
 
 
     val iconColors = remember(icon){
-
         listOf(
             Color(0xFFFFE1F7) to Color(0xFFEC66C8),
             Color(0xFFDDDBFC) to Color(0xFF6056EE),

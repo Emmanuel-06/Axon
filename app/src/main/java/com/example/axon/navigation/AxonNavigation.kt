@@ -29,7 +29,7 @@ fun AxonNavigation() {
                     navController.navigate(Screens.TOPICS.name + "/$categoryName")
                 },
                 listOfItems = viewModel.categories,
-                viewModel = viewModel
+                axonViewModel = viewModel
             )
         }
 

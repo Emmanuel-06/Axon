@@ -34,6 +34,7 @@ fun InputField(
     onUserInputChanged: (String) -> Unit,
     trailingIcon: @Composable ()-> Unit = {},
     label: String,
+    readOnly: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     OutlinedTextField(
@@ -53,6 +54,7 @@ fun InputField(
             fontWeight = FontWeight.Normal,
             fontSize = 16.sp
         ),
+        readOnly = readOnly,
         label = {
             Text(
                 text = label,
@@ -64,7 +66,52 @@ fun InputField(
         trailingIcon = { trailingIcon() },
         modifier = modifier
             .fillMaxWidth()
-            .wrapContentHeight()
+            .size(58.dp)
+    )
+}
+
+
+@Composable
+fun DropDownInputField(
+    userInput: String,
+    onUserInputChanged: (String) -> Unit,
+    trailingIcon: @Composable ()-> Unit,
+    leadingIcon: @Composable () -> Unit,
+    label: String,
+    readOnly: Boolean = true,
+    modifier: Modifier = Modifier
+) {
+    OutlinedTextField(
+        value = userInput,
+        onValueChange = { newValue ->
+            onUserInputChanged(newValue)
+        },
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = Color.White,
+            unfocusedContainerColor = Color.White,
+            focusedBorderColor = blueSecondary.copy(0f),
+            unfocusedBorderColor = blueSecondary.copy(0f)
+        ),
+        shape = RoundedCornerShape(12.dp),
+        textStyle = TextStyle(
+            fontFamily = ttHovesFontFamily,
+            fontWeight = FontWeight.Normal,
+            fontSize = 16.sp
+        ),
+        readOnly = readOnly,
+        label = {
+            Text(
+                text = label,
+                fontSize = 16.sp,
+                fontFamily = ttHovesFontFamily,
+                fontWeight = FontWeight.Normal
+            )
+        },
+        leadingIcon = { leadingIcon() },
+        trailingIcon = { trailingIcon() },
+        modifier = modifier
+            .fillMaxWidth()
+            .size(58.dp)
     )
 }
 
