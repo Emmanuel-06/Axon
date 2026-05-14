@@ -15,7 +15,7 @@ import com.example.axon.R
 //)
 
 data class Category(
-    val icon: Int = R.drawable.android_studio_icon,
+    val icon: Int,
     val categoryName: String,
     val topics: MutableList<Topic> = mutableListOf()
 )

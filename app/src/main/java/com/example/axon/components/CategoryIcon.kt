@@ -36,7 +36,7 @@ fun CategoryIcon(
     }
 
     Box(
-        modifier = modifier.border(
+        modifier = Modifier.border(
             width = 1.dp,
             color = if (selected) iconColors.second else Color.Transparent,
             shape = CircleShape
@@ -45,14 +45,12 @@ fun CategoryIcon(
         Surface(
             shape = CircleShape,
             color = iconColors.first,
-            modifier = Modifier.padding(10.dp)
+            modifier = Modifier.padding(if (selected) 6.dp else 0.dp)
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(id = icon),
                 contentDescription = null,
-                modifier = Modifier
-                    .size(48.dp)
-                    .padding(8.dp),
+                modifier = modifier.padding(10.dp).size(38.dp),
                 tint = iconColors.second
             )
         }

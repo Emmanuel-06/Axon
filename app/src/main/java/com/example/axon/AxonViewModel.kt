@@ -21,10 +21,11 @@ class AxonViewModel: ViewModel() {
     var currentIndex by mutableStateOf(0)
         private set
 
-    fun addNewContent(categoryName: String, topicName: String, qa: QuestionAndAnswer){
+    fun addNewContent(icon: Int, categoryName: String, topicName: String, qa: QuestionAndAnswer){
         /* TODO: check for existing category logic */
         categories.add(
             Category(
+                icon = icon,
                 categoryName = categoryName,
                 topics = mutableListOf(
                     Topic(

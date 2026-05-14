@@ -178,7 +178,7 @@ fun HomeScreen(
                 Image(
                     painter = painterResource(R.drawable.empty_folder),
                     contentDescription = null,
-                    modifier = Modifier.size(200.dp).alpha(0.4f)
+                    modifier = Modifier.size(160.dp).alpha(0.4f)
                 )
                 Spacer(modifier = Modifier.height(32.dp))
 
@@ -248,8 +248,9 @@ fun HomeScreen(
                 onClear = {
                           categoryToAddState = ""
                 },
-                onAddNewInfo = { categoryName, topicName, questionAndAnswer ->
+                onAddNewInfo = { icon, categoryName, topicName, questionAndAnswer ->
                     axonViewModel.addNewContent(
+                        icon,
                         categoryName,
                         topicName,
                         QuestionAndAnswer(questionAndAnswer.question, questionAndAnswer.answer)
@@ -278,7 +279,7 @@ private fun BottomSheetModal(
     inputState: CardInputState,
     viewModel: AxonViewModel,
     onClear: ()-> Unit,
-    onAddNewInfo: (String, String, QuestionAndAnswer) -> Unit,
+    onAddNewInfo: (Int, String, String, QuestionAndAnswer) -> Unit,
 ) {
     ModalBottomSheet(
         onDismissRequest = onShowBottomSheetChanged,
@@ -340,7 +341,7 @@ fun AddCategoryBottomSheetModal(
     onShowBottomSheetChanged: () -> Unit,
     inputState: CardInputState,
     onNavigate: () -> Unit,
-    onAddNewInfo: (String, String, QuestionAndAnswer) -> Unit,
+    onAddNewInfo: (Int, String, String, QuestionAndAnswer) -> Unit,
     viewModel: AxonViewModel,
 ) {
 
@@ -430,8 +431,7 @@ fun AddCategoryBottomSheetModal(
                             .menuAnchor(),
                         leadingIcon = {
                                       CategoryIcon(icon = selectedItem.icon, selected = false, modifier = Modifier
-                                          .size(56.dp)
-                                          .padding(0.dp))
+                                          .size(40.dp))
                         },
                         trailingIcon = {
                             IconButton(
@@ -491,12 +491,12 @@ fun AddCategoryBottomSheetModal(
                                 text = {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                                     ) {
                                         CategoryIcon(
                                             icon = item.icon,
                                             selected = false,
-                                            modifier = Modifier.size(56.dp)
+                                            modifier = Modifier.size(44.dp)
                                         )
 
                                         Text(
@@ -552,7 +552,8 @@ fun AddCategoryBottomSheetModal(
             buttonText = "Add"
         ) {
             onAddNewInfo(
-                inputState.categoryName,
+                selectedItem.icon,
+                selectedItem.title,
                 inputState.topic,
                 QuestionAndAnswer(inputState.question, inputState.answer)
             )
@@ -629,7 +630,7 @@ fun CreateCategoryBottomSheetModal(
             Text(
                 text = "Create a new Category",
                 fontFamily = ttHovesFontFamily,
-                fontSize = 20.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
@@ -644,6 +645,7 @@ fun CreateCategoryBottomSheetModal(
 
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(end = 16.dp)
         ) {
             items(icons.size) { index ->
@@ -655,6 +657,7 @@ fun CreateCategoryBottomSheetModal(
                             interactionSource = interactionSource, indication = null,
                             onClick = { selectedIndex = index }
                         )
+
                 )
             }
         }

@@ -36,11 +36,12 @@ fun CategoryCard(
             horizontalAlignment = Alignment.Start,
             modifier = Modifier.padding(18.dp)
         ) {
-            Image(
-                painter = painterResource(id = category.icon),
-                contentDescription = "category icon",
-                modifier = Modifier.size(56.dp)
+            CategoryIcon(
+                icon = category.icon,
+                selected = false,
+                modifier = Modifier.size(64.dp)
             )
+
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(
