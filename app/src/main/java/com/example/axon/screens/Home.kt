@@ -57,6 +57,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -76,6 +77,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.axon.AxonViewModel
 import com.example.axon.R
 import com.example.axon.components.ButtonComp
@@ -134,6 +136,8 @@ fun HomeScreen(
         mutableStateOf(BottomSheetModals.ADD_CATEGORY)
     }
 
+    val error by axonViewModel.error.collectAsState()
+
 
     Scaffold(
         topBar = {
@@ -178,7 +182,9 @@ fun HomeScreen(
                 Image(
                     painter = painterResource(R.drawable.empty_folder),
                     contentDescription = null,
-                    modifier = Modifier.size(160.dp).alpha(0.4f)
+                    modifier = Modifier
+                        .size(160.dp)
+                        .alpha(0.4f)
                 )
                 Spacer(modifier = Modifier.height(32.dp))
 
@@ -248,6 +254,7 @@ fun HomeScreen(
                 onClear = {
                           categoryToAddState = ""
                 },
+                duplicateCategoryErrorMessage = error,
                 onAddNewInfo = { icon, categoryName, topicName, questionAndAnswer ->
                     axonViewModel.addNewContent(
                         icon,
@@ -279,6 +286,7 @@ private fun BottomSheetModal(
     inputState: CardInputState,
     viewModel: AxonViewModel,
     onClear: ()-> Unit,
+    duplicateCategoryErrorMessage: String,
     onAddNewInfo: (Int, String, String, QuestionAndAnswer) -> Unit,
 ) {
     ModalBottomSheet(
@@ -323,7 +331,8 @@ private fun BottomSheetModal(
                                      viewModel.createNewCategory(icon, name)
                                  },
                             onBack = { onBack() },
-                            onClear = {onClear()}
+                            onClear = {onClear()},
+                            errorMessage = duplicateCategoryErrorMessage
                         )
 
                 }
@@ -575,9 +584,10 @@ fun AddCategoryBottomSheetModal(
 @Composable
 fun CreateCategoryBottomSheetModal(
     inputState: CardInputState,
-    onSave: (newCategoryIconRes: Int, newCategoryTitle: String ) -> Unit,
+    onSave: (newCategoryIconRes: Int, newCategoryTitle: String ) -> Boolean,
     onBack: () -> Unit,
     onClear: () -> Unit,
+    errorMessage: String,
     label: String = "create category",
 ) {
 
@@ -678,11 +688,21 @@ fun CreateCategoryBottomSheetModal(
             color = ButtonDefaults.buttonColors(bluePrimary),
             buttonText = "Save",
             onClick = {
-                onBack()
-                onSave(icons[selectedIndex], inputState.categoryToAdd)
+                val result = onSave(icons[selectedIndex], inputState.categoryToAdd)
+                if(result){
+                    onBack()
+                }
                 onClear()
             },
         )
+        Spacer(modifier = Modifier.height(12.dp))
+
+        if(errorMessage.isNotEmpty()){
+            Text(
+                text = errorMessage,
+                color = Color.Red
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
     }
