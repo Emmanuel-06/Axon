@@ -1,4 +1,4 @@
-package com.example.axon.screens
+package com.example.axon.presentation.screens
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedContent
@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,8 +30,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
@@ -55,6 +52,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -70,14 +68,11 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.axon.AxonViewModel
 import com.example.axon.R
 import com.example.axon.components.ButtonComp
@@ -101,7 +96,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     onCategoryClick: (String) -> Unit,
-    listOfItems: List<Category>,
     axonViewModel: AxonViewModel,
 ) {
     var bottomSheetState = rememberModalBottomSheetState(
@@ -137,6 +131,9 @@ fun HomeScreen(
     }
 
     val error by axonViewModel.error.collectAsState()
+    val listOfCategories by axonViewModel.categories.collectAsState()
+    val topics by axonViewModel.topics.collectAsState()
+    val questionsAndAnswers by axonViewModel.questionsAndAnswers.collectAsState()
 
 
     Scaffold(
@@ -150,9 +147,11 @@ fun HomeScreen(
                         fontFamily = ttHovesFontFamily
                     )
                 },
+                colors = TopAppBarDefaults.topAppBarColors(Color.Transparent),
                 modifier = Modifier
                     .statusBarsPadding()
                     .padding(horizontal = 8.dp)
+
             )
         },
         floatingActionButton = {
@@ -170,17 +169,18 @@ fun HomeScreen(
                     Modifier.size(36.dp)
                 )
             }
-        }
+        },
+        containerColor = grey200.copy(alpha = 0.6f)
     ) { paddingValues ->
 
-        if(listOfItems.isEmpty()){
+        if(listOfCategories.isEmpty()){
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxSize()
             ) {
                 Image(
-                    painter = painterResource(R.drawable.empty_folder),
+                    painter = painterResource(R.drawable.empty_state),
                     contentDescription = null,
                     modifier = Modifier
                         .size(160.dp)
@@ -189,7 +189,7 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Text(
-                    text = " Add a Category to begin",
+                    text = "Add a Category to begin",
                     fontFamily = ttHovesFontFamily,
                     fontWeight = FontWeight.Medium,
                     fontSize = 20.sp,
@@ -206,10 +206,11 @@ fun HomeScreen(
                     .padding(paddingValues)
                     .padding(16.dp)
             ) {
-                items(listOfItems) { category ->
+                items(listOfCategories) { category ->
                     CategoryCard(
-                        category,
+                        category = category,
                         onClick = {
+                            axonViewModel.selectCategory(category.categoryName)
                             onCategoryClick(category.categoryName)
                         }
                     )
@@ -255,12 +256,12 @@ fun HomeScreen(
                           categoryToAddState = ""
                 },
                 duplicateCategoryErrorMessage = error,
-                onAddNewInfo = { icon, categoryName, topicName, questionAndAnswer ->
+                onAddNewInfo = { categoryName, topicName, question, answer ->
                     axonViewModel.addNewContent(
-                        icon,
                         categoryName,
                         topicName,
-                        QuestionAndAnswer(questionAndAnswer.question, questionAndAnswer.answer)
+                        question,
+                        answer
                     )
 
                     categoryNameInputState = ""
@@ -287,7 +288,7 @@ private fun BottomSheetModal(
     viewModel: AxonViewModel,
     onClear: ()-> Unit,
     duplicateCategoryErrorMessage: String,
-    onAddNewInfo: (Int, String, String, QuestionAndAnswer) -> Unit,
+    onAddNewInfo: (String, String, String, String) -> Unit,
 ) {
     ModalBottomSheet(
         onDismissRequest = onShowBottomSheetChanged,
@@ -328,7 +329,7 @@ private fun BottomSheetModal(
                         CreateCategoryBottomSheetModal(
                             inputState = inputState,
                             onSave = { icon, name ->
-                                     viewModel.createNewCategory(icon, name)
+                                     viewModel.createANewCategory(name, icon)
                                  },
                             onBack = { onBack() },
                             onClear = {onClear()},
@@ -350,7 +351,7 @@ fun AddCategoryBottomSheetModal(
     onShowBottomSheetChanged: () -> Unit,
     inputState: CardInputState,
     onNavigate: () -> Unit,
-    onAddNewInfo: (Int, String, String, QuestionAndAnswer) -> Unit,
+    onAddNewInfo: (String, String, String, String) -> Unit,
     viewModel: AxonViewModel,
 ) {
 
@@ -391,7 +392,7 @@ fun AddCategoryBottomSheetModal(
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.Close,
-                        contentDescription = "hide the dialog",
+                        contentDescription = "close the bottom sheet",
                         tint = Color.Black
                     )
                 }
@@ -440,7 +441,7 @@ fun AddCategoryBottomSheetModal(
                             .menuAnchor(),
                         leadingIcon = {
                                       CategoryIcon(icon = selectedItem.icon, selected = false, modifier = Modifier
-                                          .size(40.dp))
+                                          .size(30.dp))
                         },
                         trailingIcon = {
                             IconButton(
@@ -495,7 +496,7 @@ fun AddCategoryBottomSheetModal(
                             .clip(RoundedCornerShape(24.dp))
                             .padding(0.dp)
                     ) {
-                        viewModel.categoriesCreated.forEachIndexed { index, item ->
+                        viewModel.categories.value.forEachIndexed { index, item ->
                             DropdownMenuItem(
                                 text = {
                                     Row(
@@ -505,18 +506,18 @@ fun AddCategoryBottomSheetModal(
                                         CategoryIcon(
                                             icon = item.icon,
                                             selected = false,
-                                            modifier = Modifier.size(44.dp)
+                                            modifier = Modifier.size(38.dp)
                                         )
 
                                         Text(
-                                            text = item.title,
+                                            text = item.categoryName,
                                             fontFamily = ttHovesFontFamily,
                                             fontSize = 18.sp
                                         )
                                     }
                                 },
                                 onClick = {
-                                    selectedItem = viewModel.categoriesCreated[index]
+                                    selectedItem = DropDownMenuItem(item.icon, item.categoryName)
                                     expanded = false
                                 }
                             )
@@ -561,10 +562,10 @@ fun AddCategoryBottomSheetModal(
             buttonText = "Add"
         ) {
             onAddNewInfo(
-                selectedItem.icon,
                 selectedItem.title,
                 inputState.topic,
-                QuestionAndAnswer(inputState.question, inputState.answer)
+                inputState.question,
+                inputState.answer
             )
             scope.launch {
                 bottomSheetState.hide()

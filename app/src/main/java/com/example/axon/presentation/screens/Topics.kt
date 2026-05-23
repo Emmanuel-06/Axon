@@ -1,4 +1,4 @@
-package com.example.axon.screens
+package com.example.axon.presentation.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,6 +18,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,18 +32,26 @@ import com.example.axon.components.TopicsCard
 import com.example.axon.ui.theme.grey200
 import com.example.axon.ui.theme.ttHovesFontFamily
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Topics(
     axonViewModel: AxonViewModel,
     onNavigateBack: () -> Unit,
-    onTopicClick: (String, String) -> Unit,
+    onTopicClick: (String, Int) -> Unit,
     categoryId: String,
 ) {
 
-    val category = axonViewModel.categories.find { category ->
+    val category = axonViewModel.categories.value.find {category ->
         category.categoryName == categoryId
     } ?: return
+
+    val topics by axonViewModel.topics.collectAsState()
+
+    LaunchedEffect(key1 = categoryId){
+        axonViewModel.selectCategory(categoryId)
+
+    }
 
     Scaffold(
         topBar = {
@@ -85,14 +96,14 @@ fun Topics(
                 .padding(paddingValues)
                 .padding(18.dp)
         ) {
-            items(items = category.topics){ topic ->
-                    TopicsCard(
-                        topic = topic.topicName,
-                        onClick = {
-                            onTopicClick(category.categoryName, topic.topicName)
-                        }
-                    )
+            items(items = topics){ topic->
+                TopicsCard(
+                    topic = topic.topicName
+                ) {
+                    onTopicClick(category.categoryName, topic.topicId)
+
                 }
+            }
         }
     }
 

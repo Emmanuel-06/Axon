@@ -50,7 +50,7 @@ fun CategoryIcon(
             Icon(
                 imageVector = ImageVector.vectorResource(id = icon),
                 contentDescription = null,
-                modifier = modifier.padding(10.dp).size(38.dp),
+                modifier = modifier.padding(8.dp).size(32.dp),
                 tint = iconColors.second
             )
         }

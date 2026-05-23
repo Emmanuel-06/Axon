@@ -1,5 +1,6 @@
 package com.example.axon.navigation
 
+//import com.example.axon.screens.Topics
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -8,9 +9,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.axon.AxonViewModel
-import com.example.axon.screens.HomeScreen
-import com.example.axon.screens.QuestionandAnswer
-import com.example.axon.screens.Topics
+import com.example.axon.presentation.screens.HomeScreen
+import com.example.axon.presentation.screens.Topics
 import com.example.axon.util.Screens
 
 
@@ -22,13 +22,12 @@ fun AxonNavigation() {
     NavHost(
         navController = navController,
         startDestination = Screens.HOME.name
-    ){
-        composable(route = Screens.HOME.name){
+    ) {
+        composable(route = Screens.HOME.name) {
             HomeScreen(
                 onCategoryClick = { categoryName ->
                     navController.navigate(Screens.TOPICS.name + "/$categoryName")
                 },
-                listOfItems = viewModel.categories,
                 axonViewModel = viewModel
             )
         }
@@ -57,16 +56,16 @@ fun AxonNavigation() {
                 navArgument(name = "categoryName"){ type = NavType.StringType},
                 navArgument(name = "topic"){ type = NavType.StringType}
             )
-        ){navBackStackEntry ->
+        ){ navBackStackEntry ->
 
-            QuestionandAnswer(
-                axonViewModel = viewModel,
-                categoryId = navBackStackEntry.arguments?.getString("categoryName") ?: return@composable,
-                topicId = navBackStackEntry.arguments?.getString("topic") ?: return@composable
-            ) {
-                navController.popBackStack()
-
-            }
+//            QuestionandAnswer(
+//                axonViewModel = viewModel,
+//                categoryId = navBackStackEntry.arguments?.getString("categoryName") ?: return@composable,
+//                topicId = navBackStackEntry.arguments?.getString("topic") ?: return@composable
+//            ) {
+//                navController.popBackStack()
+//
+//            }
         }
     }
 }

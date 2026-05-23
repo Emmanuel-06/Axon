@@ -53,13 +53,17 @@ android {
 
 dependencies {
 
-    val dagger_hilt_version = "2.53"
+    val dagger_hilt_version = "2.51.1"
+    val room_version = "2.5.0"
 
     //navigation
     implementation("androidx.navigation:navigation-compose:2.7.0")
 
-        //navigation for bottom sheets
-//            implementation("androidx.compose.material:material-navigation:1.7.0")
+    //room database
+    implementation("androidx.room:room-runtime:$room_version")
+    ksp("androidx.room:room-compiler:$room_version")
+    implementation("androidx.room:room-ktx:$room_version")
+
 
     //daggerhilt
     implementation("com.google.dagger:hilt-android:$dagger_hilt_version")
