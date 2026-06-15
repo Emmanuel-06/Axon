@@ -9,7 +9,7 @@ import com.example.axon.model.Category
 import com.example.axon.model.QuestionAndAnswer
 import com.example.axon.model.Topic
 
-@Database(entities = [Category::class, Topic::class, QuestionAndAnswer::class ], version = 1)
+@Database(entities = [Category::class, Topic::class, QuestionAndAnswer::class ], version = 2)
 abstract class AxonDatabase: RoomDatabase() {
     abstract fun categoryDao(): CategoryDao
 

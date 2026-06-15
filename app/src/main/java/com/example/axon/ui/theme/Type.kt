@@ -35,8 +35,8 @@ val Typography = Typography(
     */
 )
 
-val ttHovesFontFamily = FontFamily(
-    Font(R.font.tthoves_regular, FontWeight.Normal),
-    Font(R.font.tthoves_medium, FontWeight.Medium),
-    Font(R.font.tthoves_demibold, FontWeight.SemiBold),
+val overusedGroteskFontFamily = FontFamily(
+    Font(R.font.overused_grotesk_regular, FontWeight.Normal),
+    Font(R.font.overused_grotesk_medium, FontWeight.Medium),
+    Font(R.font.overused_grotesk_semibold, FontWeight.SemiBold),
 )

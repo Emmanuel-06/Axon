@@ -9,28 +9,36 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material.icons.rounded.Add
@@ -68,6 +76,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -78,21 +88,21 @@ import com.example.axon.R
 import com.example.axon.components.ButtonComp
 import com.example.axon.components.CategoryCard
 import com.example.axon.components.CategoryIcon
+import com.example.axon.components.Dialog
 import com.example.axon.components.DropDownInputField
 import com.example.axon.components.ExpandedInputField
 import com.example.axon.components.InputField
 import com.example.axon.model.CardInputState
 import com.example.axon.model.Category
 import com.example.axon.model.DropDownMenuItem
-import com.example.axon.model.QuestionAndAnswer
 import com.example.axon.ui.theme.bluePrimary
 import com.example.axon.ui.theme.grey200
-import com.example.axon.ui.theme.ttHovesFontFamily
+import com.example.axon.ui.theme.overusedGroteskFontFamily
 import com.example.axon.util.BottomSheetModals
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
     onCategoryClick: (String) -> Unit,
@@ -135,6 +145,13 @@ fun HomeScreen(
     val topics by axonViewModel.topics.collectAsState()
     val questionsAndAnswers by axonViewModel.questionsAndAnswers.collectAsState()
 
+    var openDialog by remember {
+        mutableStateOf(true)
+    }
+
+    var categoryToDelete by remember {
+        mutableStateOf<Category?>(null)
+    }
 
     Scaffold(
         topBar = {
@@ -144,7 +161,7 @@ fun HomeScreen(
                         text = "What would you like to learn today?",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Medium,
-                        fontFamily = ttHovesFontFamily
+                        fontFamily = overusedGroteskFontFamily
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(Color.Transparent),
@@ -173,7 +190,7 @@ fun HomeScreen(
         containerColor = grey200.copy(alpha = 0.6f)
     ) { paddingValues ->
 
-        if(listOfCategories.isEmpty()){
+        if (listOfCategories.isEmpty()) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
@@ -190,7 +207,7 @@ fun HomeScreen(
 
                 Text(
                     text = "Add a Category to begin",
-                    fontFamily = ttHovesFontFamily,
+                    fontFamily = overusedGroteskFontFamily,
                     fontWeight = FontWeight.Medium,
                     fontSize = 20.sp,
                     textAlign = TextAlign.Center,
@@ -209,21 +226,42 @@ fun HomeScreen(
                 items(listOfCategories) { category ->
                     CategoryCard(
                         category = category,
-                        onClick = {
-                            axonViewModel.selectCategory(category.categoryName)
-                            onCategoryClick(category.categoryName)
-                        }
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(14.dp))
+                            .combinedClickable(
+                            onClick = {
+                                axonViewModel.selectCategory(category.categoryName)
+                                onCategoryClick(category.categoryName)
+                            },
+                            onLongClick = {
+                                categoryToDelete = category
+                            },
+                        )
                     )
                 }
             }
+            categoryToDelete?.let { category ->
+                Dialog(
+                    dialogTitle = "Delete Category",
+                    dialogText = "Are you sure you want to delete this category?",
+                    icon = R.drawable.warning,
+                    onDismissRequest = {
+                        categoryToDelete = null
+                    }
+                ) {
+                    axonViewModel.deleteCategory(category)
+
+                }
+            }
         }
+
 
         if (showBottomSheetState) {
             BottomSheetModal(
                 currentSheet = currentSheet,
                 onCurrentSheetChanged = { currentSheet = BottomSheetModals.CREATE_NEW_CATEGORY },
                 modifier = Modifier
-                    .padding(bottom = 40.dp),
+                    .padding(bottom = 0.dp),
                 onShowBottomSheetChanged = { showBottomSheetState = !showBottomSheetState },
                 bottomSheetState = bottomSheetState,
                 onBack = { currentSheet = BottomSheetModals.ADD_CATEGORY },
@@ -253,7 +291,7 @@ fun HomeScreen(
                 ),
                 viewModel = axonViewModel,
                 onClear = {
-                          categoryToAddState = ""
+                    categoryToAddState = ""
                 },
                 duplicateCategoryErrorMessage = error,
                 onAddNewInfo = { categoryName, topicName, question, answer ->
@@ -286,22 +324,28 @@ private fun BottomSheetModal(
     scope: CoroutineScope,
     inputState: CardInputState,
     viewModel: AxonViewModel,
-    onClear: ()-> Unit,
+    onClear: () -> Unit,
     duplicateCategoryErrorMessage: String,
     onAddNewInfo: (String, String, String, String) -> Unit,
 ) {
+
+    val scrollState = rememberScrollState()
+
     ModalBottomSheet(
         onDismissRequest = onShowBottomSheetChanged,
         dragHandle = null,
         containerColor = Color.Transparent,
         scrimColor = Color.Black.copy(0.6f),
         sheetState = bottomSheetState,
-        modifier = modifier
+        windowInsets = WindowInsets(0, 0, 0, 0),
+        modifier = modifier.nestedScroll(rememberNestedScrollInteropConnection())
     ) {
         Column(
             modifier = Modifier
+                .systemBarsPadding()
                 .padding(16.dp)
-                .background(grey200, RoundedCornerShape(24.dp)),
+                .background(grey200, RoundedCornerShape(24.dp))
+                .imePadding(),
         ) {
 
             AnimatedContent(
@@ -320,20 +364,27 @@ private fun BottomSheetModal(
                             bottomSheetState,
                             onShowBottomSheetChanged,
                             inputState,
-                            onNavigate = { onCurrentSheetChanged() },
+                            onNavigate = {
+                                onCurrentSheetChanged()
+                                viewModel.resetError()
+                            },
                             onAddNewInfo,
-                            viewModel
+                            viewModel,
+                            modifier = Modifier,
+                            scrollState = scrollState
                         )
 
                     BottomSheetModals.CREATE_NEW_CATEGORY ->
                         CreateCategoryBottomSheetModal(
                             inputState = inputState,
                             onSave = { icon, name ->
-                                     viewModel.createANewCategory(name, icon)
-                                 },
+                                viewModel.createANewCategory(name, icon)
+                            },
                             onBack = { onBack() },
-                            onClear = {onClear()},
-                            errorMessage = duplicateCategoryErrorMessage
+                            onClear = { onClear() },
+                            viewModel = viewModel,
+                            errorMessage = duplicateCategoryErrorMessage,
+                            modifier = Modifier.imePadding()
                         )
 
                 }
@@ -353,6 +404,8 @@ fun AddCategoryBottomSheetModal(
     onNavigate: () -> Unit,
     onAddNewInfo: (String, String, String, String) -> Unit,
     viewModel: AxonViewModel,
+    scrollState: ScrollState,
+    modifier: Modifier,
 ) {
 
     var expanded by remember {
@@ -362,201 +415,212 @@ fun AddCategoryBottomSheetModal(
         mutableStateOf(DropDownMenuItem(R.drawable.bus, ""))
     }
     val rotation by animateFloatAsState(
-        targetValue = if(expanded) 180f else 0f,
+        targetValue = if (expanded) 180f else 0f,
         label = ""
     )
 
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top,
         modifier = Modifier
+            .height(600.dp)
             .padding(24.dp)
+            .imePadding()
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Box(
-                modifier = Modifier.weight(1f)
-            ) {
-                IconButton(
-                    onClick = {
-                        scope.launch {
-                            bottomSheetState.hide()
-                        }.invokeOnCompletion {
-                            if (!bottomSheetState.isVisible) onShowBottomSheetChanged()
-                        }
-                    },
-                    colors = IconButtonDefaults.iconButtonColors(Color.White),
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.Close,
-                        contentDescription = "close the bottom sheet",
-                        tint = Color.Black
-                    )
-                }
-            }
-            Text(
-                text = "New Content",
-                fontFamily = ttHovesFontFamily,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.SemiBold,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-            )
-
-            Box(
-                modifier = Modifier.weight(1f)
-            ) {}
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
         Column(
-            verticalArrangement = Arrangement.spacedBy(18.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top,
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(scrollState)
+
         ) {
-            // ExposedDropDown Menu Box
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = {
-                    expanded = !expanded
-                }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Row(
-                    verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight()
+                Box(
+                    modifier = Modifier.weight(1f)
                 ) {
-                    DropDownInputField(
-                        userInput = selectedItem.title,
-                        onUserInputChanged = {},
-                        label = "Category",
-                        readOnly = true,
-                        modifier = Modifier
-                            .weight(1f)
-                            .menuAnchor(),
-                        leadingIcon = {
-                                      CategoryIcon(icon = selectedItem.icon, selected = false, modifier = Modifier
-                                          .size(30.dp))
-                        },
-                        trailingIcon = {
-                            IconButton(
-                                onClick = {
-                                    expanded = !expanded
-                                }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.KeyboardArrowDown,
-                                    contentDescription = null,
-                                    tint = Color.Black.copy(alpha = 0.6f),
-                                    modifier = Modifier
-                                        .size(28.dp)
-                                        .rotate(rotation)
-                                )
-
+                    IconButton(
+                        onClick = {
+                            scope.launch {
+                                bottomSheetState.hide()
+                            }.invokeOnCompletion {
+                                if (!bottomSheetState.isVisible) onShowBottomSheetChanged()
                             }
-                        }
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    FilledIconButton(
-                        onClick = { onNavigate() },
-                        shape = RoundedCornerShape(12.dp),
-                        colors = IconButtonColors(
-                            containerColor = Color.White,
-                            contentColor = Color.Black,
-                            disabledContainerColor = Color.Transparent,
-                            disabledContentColor = Color.Transparent
-                        ),
-                        interactionSource = remember { MutableInteractionSource() },
-                        modifier = Modifier.size(56.dp)
+                        },
+                        colors = IconButtonDefaults.iconButtonColors(Color.White),
+                        modifier = Modifier.size(48.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Rounded.Add,
-                            contentDescription = null,
-                            modifier = Modifier
-
+                            imageVector = Icons.Rounded.Close,
+                            contentDescription = "close the bottom sheet",
+                            tint = Color.Black
                         )
                     }
                 }
+                Text(
+                    text = "New Content",
+                    fontFamily = overusedGroteskFontFamily,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                )
 
-                // Exposed Dropdown Menu
-                MaterialTheme(
-                    colorScheme = MaterialTheme.colorScheme.copy(surfaceTint = Color.White),
-                    shapes = MaterialTheme.shapes.copy(extraSmall = RoundedCornerShape(16.dp))
-                ){
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false },
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(24.dp))
-                            .padding(0.dp)
-                    ) {
-                        viewModel.categories.value.forEachIndexed { index, item ->
-                            DropdownMenuItem(
-                                text = {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                                    ) {
-                                        CategoryIcon(
-                                            icon = item.icon,
-                                            selected = false,
-                                            modifier = Modifier.size(38.dp)
-                                        )
-
-                                        Text(
-                                            text = item.categoryName,
-                                            fontFamily = ttHovesFontFamily,
-                                            fontSize = 18.sp
-                                        )
-                                    }
-                                },
-                                onClick = {
-                                    selectedItem = DropDownMenuItem(item.icon, item.categoryName)
-                                    expanded = false
-                                }
-                            )
-
-                        }
-
-                    }
-                }
-
+                Box(
+                    modifier = Modifier.weight(1f)
+                ) {}
             }
 
-            InputField(
-                userInput = inputState.topic,
-                onUserInputChanged = { newValue ->
-                    inputState.onTopicChanged(newValue)
-                },
-                label = "Topic"
-            )
+            Spacer(modifier = Modifier.height(24.dp))
 
-            InputField(
-                userInput = inputState.question,
-                onUserInputChanged = { newValue ->
-                    inputState.onQuestionChanged(newValue)
-                },
-                label = "Question"
-            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(18.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // ExposedDropDown Menu Box
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = {
+                        expanded = !expanded
+                    }
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.Bottom,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                    ) {
+                        DropDownInputField(
+                            userInput = selectedItem.title,
+                            onUserInputChanged = {},
+                            label = "Category",
+                            readOnly = true,
+                            modifier = Modifier
+                                .weight(1f)
+                                .menuAnchor(),
+                            leadingIcon = {
+                                CategoryIcon(
+                                    icon = selectedItem.icon, selected = false, modifier = Modifier
+                                        .size(30.dp)
+                                )
+                            },
+                            trailingIcon = {
+                                IconButton(
+                                    onClick = {
+                                        expanded = !expanded
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.KeyboardArrowDown,
+                                        contentDescription = null,
+                                        tint = Color.Black.copy(alpha = 0.6f),
+                                        modifier = Modifier
+                                            .size(28.dp)
+                                            .rotate(rotation)
+                                    )
 
-            ExpandedInputField(
-                userInput = inputState.answer,
-                onUserInputChanged = { newValue ->
-                    inputState.onAnswerChanged(newValue)
-                },
-                label = "Answer to question"
-            )
-            Spacer(modifier = Modifier.height(36.dp))
+                                }
+                            }
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        FilledIconButton(
+                            onClick = { onNavigate() },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = IconButtonColors(
+                                containerColor = Color.White,
+                                contentColor = Color.Black,
+                                disabledContainerColor = Color.Transparent,
+                                disabledContentColor = Color.Transparent
+                            ),
+                            interactionSource = remember { MutableInteractionSource() },
+                            modifier = Modifier.size(56.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Add,
+                                contentDescription = null,
+                                modifier = Modifier
+
+                            )
+                        }
+                    }
+
+                    // Exposed Dropdown Menu
+                    MaterialTheme(
+                        colorScheme = MaterialTheme.colorScheme.copy(surfaceTint = Color.White),
+                        shapes = MaterialTheme.shapes.copy(extraSmall = RoundedCornerShape(16.dp))
+                    ) {
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false },
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(24.dp))
+                                .padding(0.dp)
+                        ) {
+                            viewModel.categories.value.forEachIndexed { index, item ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                        ) {
+                                            CategoryIcon(
+                                                icon = item.icon,
+                                                selected = false,
+                                                modifier = Modifier.size(38.dp)
+                                            )
+
+                                            Text(
+                                                text = item.categoryName,
+                                                fontFamily = overusedGroteskFontFamily,
+                                                fontSize = 18.sp
+                                            )
+                                        }
+                                    },
+                                    onClick = {
+                                        selectedItem =
+                                            DropDownMenuItem(item.icon, item.categoryName)
+                                        expanded = false
+                                    }
+                                )
+
+                            }
+
+                        }
+                    }
+
+                }
+
+                InputField(
+                    userInput = inputState.topic,
+                    onUserInputChanged = { newValue ->
+                        inputState.onTopicChanged(newValue)
+                    },
+                    label = "Topic",
+                )
+
+                InputField(
+                    userInput = inputState.question,
+                    onUserInputChanged = { newValue ->
+                        inputState.onQuestionChanged(newValue)
+                    },
+                    label = "Question",
+                )
+
+                ExpandedInputField(
+                    userInput = inputState.answer,
+                    onUserInputChanged = { newValue ->
+                        inputState.onAnswerChanged(newValue)
+                    },
+                    label = "Answer to question"
+                )
 
 
+            }
         }
-
+        Spacer(modifier = Modifier.height(16.dp))
         ButtonComp(
             color = ButtonDefaults.buttonColors(bluePrimary),
             buttonText = "Add"
@@ -575,21 +639,23 @@ fun AddCategoryBottomSheetModal(
                 }
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
+
     }
+
 }
 
 
 @SuppressLint("UnrememberedMutableInteractionSource")
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateCategoryBottomSheetModal(
     inputState: CardInputState,
-    onSave: (newCategoryIconRes: Int, newCategoryTitle: String ) -> Boolean,
+    onSave: (newCategoryIconRes: Int, newCategoryTitle: String) -> Boolean,
     onBack: () -> Unit,
     onClear: () -> Unit,
     errorMessage: String,
+    viewModel: AxonViewModel,
     label: String = "create category",
+    modifier: Modifier = Modifier,
 ) {
 
     val icons = remember {
@@ -608,13 +674,18 @@ fun CreateCategoryBottomSheetModal(
         mutableIntStateOf(0)
     }
 
-    val interactionSource = remember{
+    val interactionSource = remember {
         MutableInteractionSource()
     }
+
+    val isError = errorMessage.isNotEmpty()
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top,
-        modifier = Modifier.padding(24.dp)
+        modifier = Modifier
+            .padding(24.dp)
+            .height(380.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -640,7 +711,7 @@ fun CreateCategoryBottomSheetModal(
 
             Text(
                 text = "Create a new Category",
-                fontFamily = ttHovesFontFamily,
+                fontFamily = overusedGroteskFontFamily,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center,
@@ -678,33 +749,39 @@ fun CreateCategoryBottomSheetModal(
         InputField(
             userInput = inputState.categoryToAdd,
             onUserInputChanged = {
+                viewModel.resetError()
                 inputState.onCategoryToAddChanged(it)
             },
-            label = label
+            label = label,
+            modifier = Modifier
         )
-
+        if (isError) {
+            Text(
+                text = errorMessage,
+                fontFamily = overusedGroteskFontFamily,
+                fontWeight = FontWeight.Normal,
+                color = MaterialTheme.colorScheme.error,
+                textAlign = TextAlign.Left,
+                modifier = Modifier
+                    .padding(top = 12.dp, start = 4.dp)
+                    .fillMaxWidth()
+            )
+        }
         Spacer(modifier = Modifier.weight(1f))
+
+
 
         ButtonComp(
             color = ButtonDefaults.buttonColors(bluePrimary),
             buttonText = "Save",
             onClick = {
                 val result = onSave(icons[selectedIndex], inputState.categoryToAdd)
-                if(result){
+                if (result) {
                     onBack()
                 }
                 onClear()
             },
+            modifier = Modifier.imePadding()
         )
-        Spacer(modifier = Modifier.height(12.dp))
-
-        if(errorMessage.isNotEmpty()){
-            Text(
-                text = errorMessage,
-                color = Color.Red
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }

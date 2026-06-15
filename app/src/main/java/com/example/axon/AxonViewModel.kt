@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.axon.model.Category
 import com.example.axon.model.QuestionAndAnswer
 import com.example.axon.model.Topic
@@ -28,12 +29,13 @@ class AxonViewModel @Inject constructor(
     private val questionAndAnswerRepository: QuestionAndAnswerRepository
 ) : ViewModel() {
 
-    private val _error = MutableStateFlow<String>("")
+    private var _error = MutableStateFlow<String>("")
     val error = _error.asStateFlow()
 
     var currentIndex by mutableStateOf(0)
         private set
 
+    //tells the viewModel which category and topic were clicked so it can fetch the corresponding data using flatMapLatest
     private val _selectedCategoryName = MutableStateFlow("")
     private val _selectedTopicId = MutableStateFlow(0)
 
@@ -81,7 +83,6 @@ class AxonViewModel @Inject constructor(
                     categoryName = categoryName     //foreign key to establish Parent -> Child relationship between the Category selected and the child list (topics) displayed
                 )
             )
-
             questionAndAnswerRepository.insertQuestionAndAnswer(
                 QuestionAndAnswer(
                     question = question,
@@ -97,6 +98,15 @@ class AxonViewModel @Inject constructor(
 
     }
 
+    fun resetError(){
+        _error.value = ""
+    }
+
+    fun deleteCategory(category: Category){
+        viewModelScope.launch {
+            categoryRepository.deleteCategory(category)
+        }
+    }
 
     fun nextQuestion() {
         if (currentIndex < categories.value.size - 1) {

@@ -21,7 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.axon.ui.theme.ttHovesFontFamily
+import com.example.axon.ui.theme.overusedGroteskFontFamily
 
 @Composable
 fun TopicsCard(
@@ -45,7 +45,7 @@ fun TopicsCard(
         ) {
             Text(
                 text = topic,
-                fontFamily = ttHovesFontFamily,
+                fontFamily = overusedGroteskFontFamily,
                 fontSize = 20.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,

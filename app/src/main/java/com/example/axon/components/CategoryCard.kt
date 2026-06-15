@@ -1,6 +1,5 @@
 package com.example.axon.components
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -16,25 +15,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.axon.model.Category
-import com.example.axon.ui.theme.grey200
-import com.example.axon.ui.theme.ttHovesFontFamily
+import com.example.axon.ui.theme.overusedGroteskFontFamily
 
 
 @Composable
 fun CategoryCard(
     category: Category,
-    onClick: () -> Unit
+    modifier: Modifier = Modifier
 ) {
     Card(
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(Color.White),
-        onClick = onClick,
-        modifier = Modifier.wrapContentHeight()
+        modifier = modifier.wrapContentHeight()
     ) {
         Column(
             horizontalAlignment = Alignment.Start,
@@ -51,9 +47,9 @@ fun CategoryCard(
 
             Text(
                 text = category.categoryName,
-                fontFamily = ttHovesFontFamily,
+                fontFamily = overusedGroteskFontFamily,
                 fontSize = 20.sp,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.SemiBold
             )
 
 //            Surface(
@@ -64,7 +60,7 @@ fun CategoryCard(
 //            ) {
 //                Text(
 //                    text = "${categories.noOfQuestions} Questions",
-//                    fontFamily = ttHovesFontFamily,
+//                    fontFamily = overusedGroteskFontFamily,
 //                    fontSize = 14.sp,
 //                    fontWeight = FontWeight.Normal,
 //                    color = Color.Black.copy(0.8f),

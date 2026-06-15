@@ -25,17 +25,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.axon.ui.theme.blueSecondary
-import com.example.axon.ui.theme.ttHovesFontFamily
+import com.example.axon.ui.theme.overusedGroteskFontFamily
 
 
 @Composable
 fun InputField(
     userInput: String,
     onUserInputChanged: (String) -> Unit,
-    trailingIcon: @Composable ()-> Unit = {},
+    trailingIcon: @Composable () -> Unit = {},
     label: String,
     readOnly: Boolean = false,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     OutlinedTextField(
         value = userInput,
@@ -50,7 +50,7 @@ fun InputField(
         ),
         shape = RoundedCornerShape(12.dp),
         textStyle = TextStyle(
-            fontFamily = ttHovesFontFamily,
+            fontFamily = overusedGroteskFontFamily,
             fontWeight = FontWeight.Normal,
             fontSize = 16.sp
         ),
@@ -59,14 +59,14 @@ fun InputField(
             Text(
                 text = label,
                 fontSize = 16.sp,
-                fontFamily = ttHovesFontFamily,
+                fontFamily = overusedGroteskFontFamily,
                 fontWeight = FontWeight.Normal
             )
         },
         trailingIcon = { trailingIcon() },
         modifier = modifier
             .fillMaxWidth()
-            .size(58.dp)
+
     )
 }
 
@@ -94,7 +94,7 @@ fun DropDownInputField(
         ),
         shape = RoundedCornerShape(12.dp),
         textStyle = TextStyle(
-            fontFamily = ttHovesFontFamily,
+            fontFamily = overusedGroteskFontFamily,
             fontWeight = FontWeight.Normal,
             fontSize = 16.sp
         ),
@@ -103,7 +103,7 @@ fun DropDownInputField(
             Text(
                 text = label,
                 fontSize = 16.sp,
-                fontFamily = ttHovesFontFamily,
+                fontFamily = overusedGroteskFontFamily,
                 fontWeight = FontWeight.Normal
             )
         },
@@ -133,7 +133,7 @@ fun ExpandedInputField(
             unfocusedBorderColor = blueSecondary.copy(0f)
         ),
         textStyle = TextStyle(
-            fontFamily = ttHovesFontFamily,
+            fontFamily = overusedGroteskFontFamily,
             fontWeight = FontWeight.Normal,
             fontSize = 16.sp
         ),
@@ -142,7 +142,7 @@ fun ExpandedInputField(
             Text(
                 text = label,
                 fontSize = 16.sp,
-                fontFamily = ttHovesFontFamily,
+                fontFamily = overusedGroteskFontFamily,
                 fontWeight = FontWeight.Normal
             )
         },

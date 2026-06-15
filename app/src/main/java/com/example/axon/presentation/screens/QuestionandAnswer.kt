@@ -46,7 +46,7 @@ import androidx.compose.ui.unit.sp
 import com.example.axon.AxonViewModel
 import com.example.axon.ui.theme.bluePrimary
 import com.example.axon.ui.theme.grey200
-import com.example.axon.ui.theme.ttHovesFontFamily
+import com.example.axon.ui.theme.overusedGroteskFontFamily
 
 //TODO
 //Slide animation between cards (combine with your flip)
@@ -94,7 +94,7 @@ import com.example.axon.ui.theme.ttHovesFontFamily
 //                title = {
 //                    Text(
 //                        text = topicId,
-//                        fontFamily = ttHovesFontFamily,
+//                        fontFamily = overusedGroteskFontFamily,
 //                        fontWeight = FontWeight.SemiBold,
 //                        fontSize = 20.sp,
 //                        color = Color.Black,
@@ -168,7 +168,7 @@ import com.example.axon.ui.theme.ttHovesFontFamily
 //                ) {
 //                    Text(
 //                        text = "Previous",
-//                        fontFamily = ttHovesFontFamily,
+//                        fontFamily = overusedGroteskFontFamily,
 //                        fontWeight = FontWeight.Normal,
 //                        fontSize = 16.sp
 //                    )
@@ -187,7 +187,7 @@ import com.example.axon.ui.theme.ttHovesFontFamily
 //                ) {
 //                    Text(
 //                        text = "Next",
-//                        fontFamily = ttHovesFontFamily,
+//                        fontFamily = overusedGroteskFontFamily,
 //                        fontWeight = FontWeight.Normal,
 //                        fontSize = 16.sp
 //                    )
@@ -244,7 +244,7 @@ import com.example.axon.ui.theme.ttHovesFontFamily
 //    ) {
 //        Text(
 //            text = questions,
-//            fontFamily = ttHovesFontFamily,
+//            fontFamily = overusedGroteskFontFamily,
 //            fontSize = 24.sp,
 //            fontWeight = FontWeight.Medium,
 //            color = Color.White,
@@ -270,7 +270,7 @@ import com.example.axon.ui.theme.ttHovesFontFamily
 //    ) {
 //        Text(
 //            text = answers,
-//            fontFamily = ttHovesFontFamily,
+//            fontFamily = overusedGroteskFontFamily,
 //            fontSize = 18.sp,
 //            lineHeight = 1.5.em,
 //            fontWeight = FontWeight.Normal,
