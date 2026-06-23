@@ -24,15 +24,18 @@ fun CategoryIcon(
 ) {
 
 
-    val iconColors = remember(icon){
-        listOf(
-            Color(0xFFFFE1F7) to Color(0xFFEC66C8),
-            Color(0xFFDDDBFC) to Color(0xFF6056EE),
-            Color(0xFFE8FCDB) to Color(0xFF80D648),
-            Color(0xFFFCECDB) to Color(0xFFDF9243),
-            Color(0xFFF5E4FF) to Color(0xFF8E25CF),
-            Color(0xFFDBE7FC) to Color(0xFF2D69D5),
-        ).random()
+    val iconColors = remember(icon) {
+        val colors =
+            listOf(
+                Color(0xFFFFE1F7) to Color(0xFFEC66C8),
+                Color(0xFFE1F7FF) to Color(0xFF56C3EE),
+                Color(0xFFE8FCDB) to Color(0xFF80D648),
+                Color(0xFFFCECDB) to Color(0xFFDF9243),
+                Color(0xFFF5E4FF) to Color(0xFF8E25CF),
+                Color(0xFFD8DCFF) to Color(0xFF2D3ED5),
+                Color(0xFFF1E4E1) to Color(0xFFF8774F),
+            )
+        colors[icon % colors.size]
     }
 
     Box(
@@ -50,7 +53,9 @@ fun CategoryIcon(
             Icon(
                 imageVector = ImageVector.vectorResource(id = icon),
                 contentDescription = null,
-                modifier = modifier.padding(8.dp).size(32.dp),
+                modifier = modifier
+                    .padding(8.dp)
+                    .size(32.dp),
                 tint = iconColors.second
             )
         }

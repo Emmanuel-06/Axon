@@ -20,6 +20,10 @@ class TopicRepository @Inject constructor(
         topicDao.updateTopic(topic)
     }
 
+    fun getTopicNameById(topicId: Int): String {
+        return topicDao.getTopicNameById(topicId)
+    }
+
     fun getAllTopics(categoryName: String): Flow<List<Topic>> {
         return topicDao.getAllTopics(categoryName)
     }

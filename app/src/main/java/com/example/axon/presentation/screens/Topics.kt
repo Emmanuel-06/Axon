@@ -40,19 +40,14 @@ import com.example.axon.ui.theme.overusedGroteskFontFamily
 fun Topics(
     axonViewModel: AxonViewModel,
     onNavigateBack: () -> Unit,
-    onTopicClick: (String, Int) -> Unit,
-    categoryId: String,
+    onNavigateToQAndA:(Int, String) -> Unit,
+    categoryId: String
 ) {
-
-    val category = axonViewModel.categories.value.find {category ->
-        category.categoryName == categoryId
-    } ?: return
 
     val topics by axonViewModel.topics.collectAsState()
 
     LaunchedEffect(key1 = categoryId){
         axonViewModel.selectCategory(categoryId)
-
     }
 
     Scaffold(
@@ -102,11 +97,10 @@ fun Topics(
                 TopicsCard(
                     topic = topic.topicName
                 ) {
-                    onTopicClick(category.categoryName, topic.topicId)
-
+                    axonViewModel.selectTopic(topic.topicId)
+                    onNavigateToQAndA(topic.topicId, topic.topicName)
                 }
             }
         }
     }
-
 }

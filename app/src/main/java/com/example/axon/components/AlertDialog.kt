@@ -42,6 +42,7 @@ fun Dialog(
                     .height(46.dp)
             ) {
                 onConfirmation()
+                onDismissRequest()
             }
         },
         dismissButton = {

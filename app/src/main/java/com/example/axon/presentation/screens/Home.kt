@@ -2,6 +2,7 @@ package com.example.axon.presentation.screens
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -229,14 +230,15 @@ fun HomeScreen(
                         modifier = Modifier
                             .clip(RoundedCornerShape(14.dp))
                             .combinedClickable(
-                            onClick = {
-                                axonViewModel.selectCategory(category.categoryName)
-                                onCategoryClick(category.categoryName)
-                            },
-                            onLongClick = {
-                                categoryToDelete = category
-                            },
-                        )
+                                onClick = {
+                                    axonViewModel.selectCategory(category.categoryName)
+                                    onCategoryClick(category.categoryName)
+                                },
+                                onLongClick = {
+                                    categoryToDelete = category
+
+                                },
+                            )
                     )
                 }
             }
@@ -311,6 +313,7 @@ fun HomeScreen(
         }
     }
 }
+
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -419,6 +422,7 @@ fun AddCategoryBottomSheetModal(
         label = ""
     )
 
+
     Column(
         modifier = Modifier
             .height(600.dp)
@@ -496,7 +500,6 @@ fun AddCategoryBottomSheetModal(
                             userInput = selectedItem.title,
                             onUserInputChanged = {},
                             label = "Category",
-                            readOnly = true,
                             modifier = Modifier
                                 .weight(1f)
                                 .menuAnchor(),
@@ -557,9 +560,8 @@ fun AddCategoryBottomSheetModal(
                             onDismissRequest = { expanded = false },
                             modifier = Modifier
                                 .clip(RoundedCornerShape(24.dp))
-                                .padding(0.dp)
                         ) {
-                            viewModel.categories.value.forEachIndexed { index, item ->
+                            viewModel.categories.value.forEachIndexed { _, item ->
                                 DropdownMenuItem(
                                     text = {
                                         Row(
@@ -585,9 +587,7 @@ fun AddCategoryBottomSheetModal(
                                         expanded = false
                                     }
                                 )
-
                             }
-
                         }
                     }
 

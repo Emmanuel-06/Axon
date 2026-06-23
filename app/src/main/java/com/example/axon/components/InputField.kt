@@ -55,6 +55,7 @@ fun InputField(
             fontSize = 16.sp
         ),
         readOnly = readOnly,
+        maxLines = 1,
         label = {
             Text(
                 text = label,
@@ -137,6 +138,7 @@ fun ExpandedInputField(
             fontWeight = FontWeight.Normal,
             fontSize = 16.sp
         ),
+        maxLines = 1,
         shape = RoundedCornerShape(12.dp),
         label = {
             Text(

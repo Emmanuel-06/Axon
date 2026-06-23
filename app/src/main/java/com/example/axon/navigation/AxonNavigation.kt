@@ -10,6 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.axon.AxonViewModel
 import com.example.axon.presentation.screens.HomeScreen
+import com.example.axon.presentation.screens.QuestionAndAnswer
 import com.example.axon.presentation.screens.Topics
 import com.example.axon.util.Screens
 
@@ -34,37 +35,40 @@ fun AxonNavigation() {
         composable(
             route = Screens.TOPICS.name + "/{categoryName}",
             arguments = listOf(
-                navArgument("categoryName"){ type = NavType.StringType}
+                navArgument("categoryName") { type = NavType.StringType }
             )
-        ){navBackStackEntry ->
+        ) { navBackStackEntry ->
             Topics(
                 axonViewModel = viewModel,
                 onNavigateBack = {
                     navController.popBackStack()
                 },
-                onTopicClick = { categoryName, topic->
-                    navController.navigate(Screens.QUESTION_AND_ANSWER.name + "/$categoryName/$topic")
+                onNavigateToQAndA = { topicId, topicName ->
+                    navController.navigate(Screens.QUESTION_AND_ANSWER.name +"/${topicId}/${topicName}")
                 },
                 categoryId = navBackStackEntry.arguments?.getString("categoryName") ?: ""
             )
         }
 
-        composable(
-            route = Screens.QUESTION_AND_ANSWER.name + "/{categoryName}/{topic}",
+        composable (
+            route = Screens.QUESTION_AND_ANSWER.name + "/{topicId}/{topicName}",
             arguments = listOf(
-                navArgument(name = "categoryName"){ type = NavType.StringType},
-                navArgument(name = "topic"){ type = NavType.StringType}
+                navArgument("topicId") {
+                    type = NavType.IntType
+                },
+                navArgument("topicName"){
+                    type = NavType.StringType
+                }
             )
-        ){ navBackStackEntry ->
-
-//            QuestionandAnswer(
-//                axonViewModel = viewModel,
-//                categoryId = navBackStackEntry.arguments?.getString("categoryName") ?: return@composable,
-//                topicId = navBackStackEntry.arguments?.getString("topic") ?: return@composable
-//            ) {
-//                navController.popBackStack()
-//
-//            }
+        ) { navBackStackEntry ->
+            QuestionAndAnswer(
+                axonViewModel = viewModel,
+                topicId = navBackStackEntry.arguments?.getInt("topicId") ?: 0,
+                topicName = navBackStackEntry.arguments?.getString("topicName") ?: "",
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }

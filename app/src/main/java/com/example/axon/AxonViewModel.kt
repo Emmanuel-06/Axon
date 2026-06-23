@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.axon.model.Category
 import com.example.axon.model.QuestionAndAnswer
 import com.example.axon.model.Topic
@@ -32,8 +31,10 @@ class AxonViewModel @Inject constructor(
     private var _error = MutableStateFlow<String>("")
     val error = _error.asStateFlow()
 
-    var currentIndex by mutableStateOf(0)
-        private set
+    private var _currentIndex = MutableStateFlow(0)
+    val currentIndex = _currentIndex.asStateFlow()
+
+
 
     //tells the viewModel which category and topic were clicked so it can fetch the corresponding data using flatMapLatest
     private val _selectedCategoryName = MutableStateFlow("")
@@ -95,7 +96,11 @@ class AxonViewModel @Inject constructor(
 
     fun selectCategory(categoryName: String){
         _selectedCategoryName.value = categoryName
+    }
 
+    fun selectTopic(topicId: Int){
+        _selectedTopicId.value = topicId
+        _currentIndex.value = 0
     }
 
     fun resetError(){
@@ -109,16 +114,16 @@ class AxonViewModel @Inject constructor(
     }
 
     fun nextQuestion() {
-        if (currentIndex < categories.value.size - 1) {
-            currentIndex++
+        if (_currentIndex.value < questionsAndAnswers.value.size - 1) {
+            _currentIndex.value++
         } else {
             return
         }
     }
 
     fun prevQuestion() {
-        if (currentIndex > 0) {
-            currentIndex--
+        if (_currentIndex.value > 0) {
+            _currentIndex.value--
         } else {
 
         }
